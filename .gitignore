@@ -23,8 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Firebase Config (IMPORTANT - Keep credentials secret!)
-src/firebase/config.js
+# Firebase Config
 .firebase/
 .firebaserc
 firebase-debug.log
