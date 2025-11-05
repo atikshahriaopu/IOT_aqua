@@ -1,3 +1,97 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom Scrollbar */
+@layer utilities {
+  /* For Webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+    transition: background 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+
+  /* Pulse animation for status indicators */
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.8);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(0.8);
+      opacity: 1;
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .card-hover:hover {
+    @apply shadow-lg transform scale-105;
+  }
+
+  /* Focus ring for accessibility */
+  .focus-aqua {
+    @apply focus:outline-none focus:ring-2 focus:ring-aqua-500 focus:ring-offset-2;
+  }
+
+  .focus-ocean {
+    @apply focus:outline-none focus:ring-2 focus:ring-ocean-500 focus:ring-offset-2;
+  }
+
+  /* Tooltip styles */
+  .tooltip {
+    @apply relative;
+  }
+
+  .tooltip::before {
+    content: attr(data-tooltip);
+    @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 text-xs text-white bg-gray-900 rounded-lg opacity-0 pointer-events-none transition-opacity duration-200 whitespace-nowrap;
+  }
+
+  .tooltip:hover::before {
+    @apply opacity-100;
+  }
+}
+
+/* Smooth transitions */
+@layer base {
+  * {
+    @apply transition-colors duration-200;
+  }
+
+  /* Ensure focus is visible for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-aqua-500 ring-offset-2;
+  }
+}
