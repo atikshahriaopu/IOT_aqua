@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { database, sensorRef } from "../firebase/config";
+import { database, sensorRef } from "../firebase/config.js";
 import { onValue } from "firebase/database";
 import {
   Droplets,
