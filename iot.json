@@ -1,0 +1,40 @@
+{
+  "aquarium": {
+    "sensors": {
+      "temperature": 26.5,
+      "turbidity": 15,
+      "timestamp": 0
+    },
+    "devices": {
+      "lights": {
+        "status": "OFF",
+        "mode": "auto",
+        "color": "#4A90E2",
+        "brightness": 80
+      },
+      "pump": {
+        "status": "OFF",
+        "mode": "auto",
+        "duration": 10,
+        "interval": 60
+      },
+      "feeder": {
+        "lastFed": 0,
+        "nextFeed": 0,
+        "interval": 6,
+        "mode": "auto"
+      }
+    },
+    "alerts": {},
+    "commands": {
+      "feedNow": false,
+      "stopBuzzer": false
+    },
+    "schedules": {
+      "lightStart": "06:00",
+      "lightEnd": "20:00",
+      "pumpDuration": 10,
+      "pumpInterval": 60
+    }
+  }
+}
