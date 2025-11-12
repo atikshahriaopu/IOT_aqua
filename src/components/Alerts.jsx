@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
-import { database, sensorRef } from "../firebase/config.js";
-import { onValue } from "firebase/database";
+import { useState } from "react";
 import {
   AlertTriangle,
   CheckCircle,
@@ -13,14 +11,6 @@ const Alerts = () => {
   const [activeAlerts, setActiveAlerts] = useState([
     {
       id: 1,
-      type: "warning",
-      title: "Water Quality Alert",
-      message: "Turbidity level is moderate. Consider checking the filter.",
-      timestamp: "5 minutes ago",
-      active: true,
-    },
-    {
-      id: 2,
       type: "info",
       title: "Feeding Completed",
       message: "Automatic feeding was successful at 2:00 PM",
@@ -304,19 +294,6 @@ const Alerts = () => {
                       aria-label="Maximum temperature threshold"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-700 font-bold mb-3 block">
-                    Turbidity Threshold (NTU)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Max turbidity"
-                    defaultValue="30"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-aqua-500 focus:border-aqua-500 hover:border-gray-400 transition-all shadow-sm"
-                    aria-label="Maximum turbidity threshold"
-                  />
                 </div>
 
                 <button className="w-full bg-gradient-to-r from-aqua-500 to-ocean-500 text-white py-4 rounded-xl font-bold hover:from-aqua-600 hover:to-ocean-600 transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 hover:scale-105 focus-aqua">

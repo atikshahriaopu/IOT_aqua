@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-import { database, sensorRef } from "../firebase/config.js";
-import { onValue } from "firebase/database";
-import { Power, Lightbulb, Wind, Coffee } from "lucide-react";
+import { useState } from "react";
+import { Lightbulb, Coffee } from "lucide-react";
 
 const Controls = () => {
   const [feedingMode, setFeedingMode] = useState("auto");
@@ -9,8 +7,6 @@ const Controls = () => {
   const [lightMode, setLightMode] = useState("auto");
   const [lightColor, setLightColor] = useState("#4A90E2");
   const [lightBrightness, setLightBrightness] = useState(80);
-  const [pumpMode, setPumpMode] = useState("auto");
-  const [pumpStatus, setPumpStatus] = useState(true);
 
   const handleFeedNow = () => {
     // Send command to Firebase to trigger feeding
@@ -21,12 +17,6 @@ const Controls = () => {
   const handleLightToggle = () => {
     // Send command to Firebase to toggle lights
     console.log("Light toggled");
-  };
-
-  const handlePumpToggle = () => {
-    setPumpStatus(!pumpStatus);
-    // Send command to Firebase
-    console.log("Pump toggled:", !pumpStatus);
   };
 
   return (
@@ -228,107 +218,6 @@ const Controls = () => {
             >
               💡 Toggle Lights
             </button>
-          </div>
-
-          {/* Oxygen Pump Control */}
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-300 lg:col-span-2">
-            <div className="flex items-center mb-5">
-              <div className="w-12 h-12 bg-ocean-100 rounded-xl flex items-center justify-center mr-3 shadow-sm">
-                <Wind className="text-ocean-600" size={24} />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">Air Pump</h2>
-                <p className="text-xs text-gray-600">Oxygenation system</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              <div>
-                {/* Mode Selection */}
-                <div className="mb-5">
-                  <label className="text-sm font-bold text-gray-700 mb-3 block">
-                    Mode
-                  </label>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setPumpMode("auto")}
-                      className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
-                        pumpMode === "auto"
-                          ? "bg-ocean-500 text-white shadow-lg hover:shadow-xl hover:bg-ocean-600 scale-105"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
-                      }`}
-                      aria-label="Set pump to scheduled mode"
-                    >
-                      Scheduled
-                    </button>
-                    <button
-                      onClick={() => setPumpMode("manual")}
-                      className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
-                        pumpMode === "manual"
-                          ? "bg-ocean-500 text-white shadow-lg hover:shadow-xl hover:bg-ocean-600 scale-105"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
-                      }`}
-                      aria-label="Set pump to manual mode"
-                    >
-                      Manual
-                    </button>
-                  </div>
-                </div>
-
-                {/* Auto Mode Info */}
-                {pumpMode === "auto" && (
-                  <div className="mb-5 p-4 bg-gradient-to-br from-ocean-50 to-aqua-50 rounded-xl border border-ocean-100 shadow-sm">
-                    <p className="text-sm text-ocean-800 font-medium">
-                      <span className="font-bold">Schedule:</span> 10 min ON
-                      every hour
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                {/* Pump Status */}
-                <div className="flex items-center justify-between mb-5 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 shadow-sm">
-                  <span className="text-sm font-bold text-gray-700">
-                    Pump Status
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <div
-                        className={`w-4 h-4 rounded-full ${
-                          pumpStatus ? "bg-seaweed-500" : "bg-gray-400"
-                        }`}
-                      ></div>
-                      {pumpStatus && (
-                        <div className="absolute inset-0 w-4 h-4 rounded-full bg-seaweed-500 animate-pulse-slow"></div>
-                      )}
-                    </div>
-                    <span
-                      className={`text-sm font-bold ${
-                        pumpStatus ? "text-seaweed-600" : "text-gray-600"
-                      }`}
-                    >
-                      {pumpStatus ? "RUNNING" : "STOPPED"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Pump Toggle */}
-                {pumpMode === "manual" && (
-                  <button
-                    onClick={handlePumpToggle}
-                    className={`w-full py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 hover:scale-105 focus-aqua ${
-                      pumpStatus
-                        ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700"
-                        : "bg-gradient-to-r from-ocean-500 via-ocean-600 to-aqua-600 text-white"
-                    }`}
-                    aria-label={pumpStatus ? "Stop the pump" : "Start the pump"}
-                  >
-                    {pumpStatus ? "⏸️ Stop Pump" : "▶️ Start Pump"}
-                  </button>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>
