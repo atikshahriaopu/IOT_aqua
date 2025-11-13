@@ -1,30 +1,112 @@
 import { useEffect, useState } from "react";
 import { Thermometer, Calendar, AlertTriangle } from "lucide-react";
+import { database } from "../firebase/config";
+import { ref, onValue } from "firebase/database";
 
 const Dashboard = () => {
-  // Mock data - replace with Firebase real-time data
   const [sensorData, setSensorData] = useState({
-    waterTemp: 26.5,
+    waterTemp: "--",
     waterQuality: "Good",
-    lastFed: "2 hours ago",
-    nextFeeding: "In 4 hours",
-    lightStatus: "ON",
+    lastFed: "--",
+    nextFeeding: "--",
+    lightStatus: "OFF",
     timestamp: new Date().toLocaleString(),
   });
 
-  const [alerts] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      setSensorData((prev) => ({
-        ...prev,
-        waterTemp: (26 + Math.random() * 2).toFixed(1),
-        timestamp: new Date().toLocaleString(),
-      }));
-    }, 5000);
+    // Listen to real-time sensor data from Firebase
+    const sensorRef = ref(database, "aquarium/sensors");
+    const devicesRef = ref(database, "aquarium/devices");
+    const alertsRef = ref(database, "aquarium/alerts");
 
-    return () => clearInterval(interval);
+    // Subscribe to sensor updates
+    const unsubscribeSensor = onValue(sensorRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setSensorData((prev) => ({
+          ...prev,
+          waterTemp: data.temperature ? data.temperature.toFixed(1) : "--",
+          timestamp: data.timestamp
+            ? new Date(data.timestamp * 1000).toLocaleString()
+            : new Date().toLocaleString(),
+        }));
+        setIsConnected(true);
+      }
+    });
+
+    // Subscribe to device status
+    const unsubscribeDevices = onValue(devicesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+
+        // Update light status
+        if (data.lights) {
+          setSensorData((prev) => ({
+            ...prev,
+            lightStatus: data.lights.status || "OFF",
+          }));
+        }
+
+        // Update feeding info
+        if (data.feeder) {
+          const lastFed = data.feeder.lastFed;
+          const interval = data.feeder.interval || 6;
+
+          if (lastFed) {
+            const lastFedDate = new Date(lastFed * 1000);
+            const now = new Date();
+            const diffMs = now - lastFedDate;
+            const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMins = Math.floor(
+              (diffMs % (1000 * 60 * 60)) / (1000 * 60)
+            );
+
+            const nextFeedMs = lastFed * 1000 + interval * 60 * 60 * 1000;
+            const nextFeedDate = new Date(nextFeedMs);
+            const timeToNext = nextFeedDate - now;
+            const hoursToNext = Math.floor(timeToNext / (1000 * 60 * 60));
+            const minsToNext = Math.floor(
+              (timeToNext % (1000 * 60 * 60)) / (1000 * 60)
+            );
+
+            setSensorData((prev) => ({
+              ...prev,
+              lastFed:
+                diffHrs > 0
+                  ? `${diffHrs}h ${diffMins}m ago`
+                  : `${diffMins}m ago`,
+              nextFeeding:
+                timeToNext > 0
+                  ? `In ${hoursToNext}h ${minsToNext}m`
+                  : "Due now",
+            }));
+          }
+        }
+      }
+    });
+
+    // Subscribe to alerts
+    const unsubscribeAlerts = onValue(alertsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const alertMessages = [];
+
+        if (data.temperature) {
+          alertMessages.push(data.temperature);
+        }
+
+        setAlerts(alertMessages);
+      }
+    });
+
+    return () => {
+      unsubscribeSensor();
+      unsubscribeDevices();
+      unsubscribeAlerts();
+    };
   }, []);
 
   const getTempStatus = (temp) => {
@@ -178,10 +260,14 @@ const Dashboard = () => {
             <div className="space-y-3">
               <StatusRow
                 label="ESP32 Connection"
-                status="Connected"
-                isGood={true}
+                status={isConnected ? "Connected" : "Disconnected"}
+                isGood={isConnected}
               />
-              <StatusRow label="Firebase Sync" status="Active" isGood={true} />
+              <StatusRow
+                label="Firebase Sync"
+                status={isConnected ? "Active" : "Waiting"}
+                isGood={isConnected}
+              />
               <StatusRow label="Auto Mode" status="Enabled" isGood={true} />
             </div>
           </div>

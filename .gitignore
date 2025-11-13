@@ -38,6 +38,6 @@ ui-debug.log
 .env.production.local
 
 # Documentation Files
-*.md
+
 !README.md
 *.txt

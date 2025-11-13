@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   AlertTriangle,
   CheckCircle,
@@ -6,21 +6,42 @@ import {
   Bell,
   Volume2,
 } from "lucide-react";
+import { database } from "../firebase/config";
+import { ref, onValue, set } from "firebase/database";
 
 const Alerts = () => {
-  const [activeAlerts, setActiveAlerts] = useState([
-    {
-      id: 1,
-      type: "info",
-      title: "Feeding Completed",
-      message: "Automatic feeding was successful at 2:00 PM",
-      timestamp: "2 hours ago",
-      active: false,
-    },
-  ]);
-
+  const [activeAlerts, setActiveAlerts] = useState([]);
   const [buzzerActive, setBuzzerActive] = useState(false);
   const [notifications, setNotifications] = useState(true);
+
+  useEffect(() => {
+    // Listen to alerts from Firebase
+    const alertsRef = ref(database, "aquarium/alerts");
+
+    const unsubscribe = onValue(alertsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const alerts = [];
+        let id = 1;
+
+        if (data.temperature) {
+          alerts.push({
+            id: id++,
+            type: "error",
+            title: "Temperature Alert",
+            message: data.temperature,
+            timestamp: "Now",
+            active: true,
+          });
+          setBuzzerActive(true);
+        }
+
+        setActiveAlerts(alerts);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleResetAlert = (alertId) => {
     setActiveAlerts((prev) =>
@@ -28,20 +49,27 @@ const Alerts = () => {
         alert.id === alertId ? { ...alert, active: false } : alert
       )
     );
-    // Send reset command to Firebase
-    console.log("Alert reset:", alertId);
+    // Clear alert in Firebase
+    set(ref(database, "aquarium/alerts/temperature"), "");
   };
 
-  const handleStopBuzzer = () => {
+  const handleStopBuzzer = async () => {
     setBuzzerActive(false);
-    // Send command to ESP32 to stop buzzer
-    console.log("Buzzer stopped");
+    try {
+      // Send command to ESP32 to stop buzzer
+      await set(ref(database, "aquarium/commands/stopBuzzer"), true);
+      console.log("Buzzer stop command sent");
+    } catch (error) {
+      console.error("Error stopping buzzer:", error);
+    }
   };
 
   const handleClearAll = () => {
     setActiveAlerts((prev) =>
       prev.map((alert) => ({ ...alert, active: false }))
     );
+    // Clear all alerts in Firebase
+    set(ref(database, "aquarium/alerts/temperature"), "");
   };
 
   const getAlertIcon = (type) => {

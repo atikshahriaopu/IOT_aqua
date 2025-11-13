@@ -1,22 +1,112 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Lightbulb, Coffee } from "lucide-react";
+import { database } from "../firebase/config";
+import { ref, set, onValue } from "firebase/database";
 
 const Controls = () => {
   const [feedingMode, setFeedingMode] = useState("auto");
   const [feedInterval, setFeedInterval] = useState(6);
-  const [lightMode, setLightMode] = useState("auto");
+  const [lightMode, setLightMode] = useState("manual");
+  const [lightStatus, setLightStatus] = useState("OFF");
   const [lightColor, setLightColor] = useState("#4A90E2");
   const [lightBrightness, setLightBrightness] = useState(80);
 
-  const handleFeedNow = () => {
-    // Send command to Firebase to trigger feeding
-    console.log("Feeding now...");
-    alert("🐠 Feeding initiated!");
+  // Load current settings from Firebase
+  useEffect(() => {
+    const devicesRef = ref(database, "aquarium/devices");
+
+    const unsubscribe = onValue(devicesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+
+        if (data.feeder) {
+          setFeedingMode(data.feeder.mode || "auto");
+          setFeedInterval(data.feeder.interval || 6);
+        }
+
+        if (data.lights) {
+          setLightMode(data.lights.mode || "manual");
+          setLightStatus(data.lights.status || "OFF");
+          setLightColor(data.lights.color || "#4A90E2");
+          setLightBrightness(data.lights.brightness || 80);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleFeedNow = async () => {
+    try {
+      // Send command to Firebase to trigger feeding
+      await set(ref(database, "aquarium/commands/feedNow"), true);
+      console.log("Feeding now...");
+      alert("🐠 Feeding initiated!");
+    } catch (error) {
+      console.error("Error feeding:", error);
+      alert("❌ Failed to feed. Check connection.");
+    }
   };
 
-  const handleLightToggle = () => {
-    // Send command to Firebase to toggle lights
-    console.log("Light toggled");
+  const handleFeedingModeChange = async (mode) => {
+    setFeedingMode(mode);
+    try {
+      await set(ref(database, "aquarium/devices/feeder/mode"), mode);
+    } catch (error) {
+      console.error("Error updating feeding mode:", error);
+    }
+  };
+
+  const handleFeedIntervalChange = async (interval) => {
+    setFeedInterval(interval);
+    try {
+      await set(
+        ref(database, "aquarium/devices/feeder/interval"),
+        parseInt(interval)
+      );
+    } catch (error) {
+      console.error("Error updating feed interval:", error);
+    }
+  };
+
+  const handleLightToggle = async () => {
+    const newStatus = lightStatus === "ON" ? "OFF" : "ON";
+    setLightStatus(newStatus);
+    try {
+      await set(ref(database, "aquarium/devices/lights/status"), newStatus);
+    } catch (error) {
+      console.error("Error toggling lights:", error);
+    }
+  };
+
+  const handleLightModeChange = async (mode) => {
+    setLightMode(mode);
+    try {
+      await set(ref(database, "aquarium/devices/lights/mode"), mode);
+    } catch (error) {
+      console.error("Error updating light mode:", error);
+    }
+  };
+
+  const handleLightColorChange = async (color) => {
+    setLightColor(color);
+    try {
+      await set(ref(database, "aquarium/devices/lights/color"), color);
+    } catch (error) {
+      console.error("Error updating light color:", error);
+    }
+  };
+
+  const handleBrightnessChange = async (brightness) => {
+    setLightBrightness(brightness);
+    try {
+      await set(
+        ref(database, "aquarium/devices/lights/brightness"),
+        parseInt(brightness)
+      );
+    } catch (error) {
+      console.error("Error updating brightness:", error);
+    }
   };
 
   return (
@@ -50,7 +140,7 @@ const Controls = () => {
               </label>
               <div className="flex gap-3">
                 <button
-                  onClick={() => setFeedingMode("auto")}
+                  onClick={() => handleFeedingModeChange("auto")}
                   className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
                     feedingMode === "auto"
                       ? "bg-coral-500 text-white shadow-lg hover:shadow-xl hover:bg-coral-600 scale-105"
@@ -61,7 +151,7 @@ const Controls = () => {
                   Automatic
                 </button>
                 <button
-                  onClick={() => setFeedingMode("manual")}
+                  onClick={() => handleFeedingModeChange("manual")}
                   className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
                     feedingMode === "manual"
                       ? "bg-coral-500 text-white shadow-lg hover:shadow-xl hover:bg-coral-600 scale-105"
@@ -86,7 +176,7 @@ const Controls = () => {
                   min="1"
                   max="24"
                   value={feedInterval}
-                  onChange={(e) => setFeedInterval(e.target.value)}
+                  onChange={(e) => handleFeedIntervalChange(e.target.value)}
                   className="w-full h-2.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-coral-500 focus-aqua"
                   aria-label="Feeding interval slider"
                 />
@@ -128,7 +218,7 @@ const Controls = () => {
               </label>
               <div className="flex gap-3">
                 <button
-                  onClick={() => setLightMode("auto")}
+                  onClick={() => handleLightModeChange("auto")}
                   className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
                     lightMode === "auto"
                       ? "bg-gradient-to-r from-coral-500 to-coral-600 text-white shadow-lg hover:shadow-xl scale-105"
@@ -139,7 +229,7 @@ const Controls = () => {
                   Auto Day/Night
                 </button>
                 <button
-                  onClick={() => setLightMode("manual")}
+                  onClick={() => handleLightModeChange("manual")}
                   className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
                     lightMode === "manual"
                       ? "bg-gradient-to-r from-coral-500 to-coral-600 text-white shadow-lg hover:shadow-xl scale-105"
@@ -164,7 +254,7 @@ const Controls = () => {
                     <input
                       type="color"
                       value={lightColor}
-                      onChange={(e) => setLightColor(e.target.value)}
+                      onChange={(e) => handleLightColorChange(e.target.value)}
                       className="w-20 h-20 rounded-xl cursor-pointer border-2 border-gray-300 shadow-md hover:shadow-lg transition-all focus-aqua"
                       aria-label="Select light color"
                     />
@@ -180,7 +270,7 @@ const Controls = () => {
                         ].map((color) => (
                           <button
                             key={color}
-                            onClick={() => setLightColor(color)}
+                            onClick={() => handleLightColorChange(color)}
                             style={{ backgroundColor: color }}
                             className="w-10 h-10 rounded-xl border-2 border-gray-300 hover:scale-110 hover:shadow-lg transition-all focus-aqua"
                             aria-label={`Set color to ${color}`}
@@ -202,7 +292,7 @@ const Controls = () => {
                     min="0"
                     max="100"
                     value={lightBrightness}
-                    onChange={(e) => setLightBrightness(e.target.value)}
+                    onChange={(e) => handleBrightnessChange(e.target.value)}
                     className="w-full h-2.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-coral-500 focus-aqua"
                     aria-label="Adjust brightness"
                   />
