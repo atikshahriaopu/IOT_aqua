@@ -5,12 +5,6 @@
       "timestamp": 0
     },
     "devices": {
-      "lights": {
-        "status": "OFF",
-        "mode": "auto",
-        "color": "#4A90E2",
-        "brightness": 80
-      },
       "feeder": {
         "lastFed": 0,
         "nextFeed": 0,
@@ -22,10 +16,6 @@
     "commands": {
       "feedNow": false,
       "stopBuzzer": false
-    },
-    "schedules": {
-      "lightStart": "06:00",
-      "lightEnd": "20:00"
     }
   }
 }

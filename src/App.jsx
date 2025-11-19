@@ -24,9 +24,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-cyan-100">
       {/* Desktop Layout */}
-      <div className="lg:flex lg:max-w-7xl lg:mx-auto lg:min-h-screen">
+      <div className="lg:flex lg:max-w-full lg:mx-auto lg:min-h-screen">
         {/* Sidebar Component (Desktop & Mobile) */}
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 

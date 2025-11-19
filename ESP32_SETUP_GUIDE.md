@@ -21,7 +21,6 @@
 
 ### Actuators
 - **Servo Motor (SG90)** - For automatic food dispenser
-- **WS2812B RGB LED Strip** - For aquarium lighting
 - **5V Buzzer** - For alerts (optional)
 
 ### Power Supply
@@ -42,10 +41,9 @@ ESP32 Pin Layout:
 ├─────────────────────────────────┤
 │  GPIO4   ──→  DS18B20 Data      │
 │  GPIO18  ──→  Servo Signal      │
-│  GPIO5   ──→  WS2812B Data In   │
 │  GPIO19  ──→  Buzzer (+)        │
 │  3.3V    ──→  DS18B20 VCC       │
-│  5V      ──→  Servo/LED VCC     │
+│  5V      ──→  Servo VCC         │
 │  GND     ──→  All GND           │
 └─────────────────────────────────┘
 ```
@@ -71,17 +69,7 @@ Brown (GND)  →   GND
 Orange (Sig) →   GPIO18
 ```
 
-#### 3. WS2812B RGB LED Strip
-```
-LED Strip        ESP32
-─────────        ─────
-5V           →   5V (external power for long strips)
-GND          →   GND
-DIN          →   GPIO5
-```
-**Note:** For LED strips >30 LEDs, use external 5V power supply.
-
-#### 4. Buzzer (Optional)
+#### 3. Buzzer (Optional)
 ```
 Buzzer           ESP32
 ──────           ─────
@@ -111,7 +99,6 @@ Go to **Sketch → Include Library → Manage Libraries**, then install:
 - **OneWire** by Paul Stoffregen
 - **DallasTemperature** by Miles Burton
 - **ESP32Servo** by Kevin Harrington
-- **Adafruit NeoPixel** by Adafruit
 
 ---
 
@@ -126,7 +113,6 @@ Create a new Arduino sketch and copy this code:
 #include <DallasTemperature.h>
 #include <ESP32Servo.h>
 #include <Adafruit_NeoPixel.h>
-
 // Provide the token generation process info
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
@@ -157,12 +143,6 @@ Create a new Arduino sketch and copy this code:
 #define BUZZER_PIN 19       // Buzzer for alerts
 
 // ========================
-// LED Configuration
-// ========================
-#define NUM_LEDS 30         // Number of LEDs in strip
-Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
-
-// ========================
 // Sensor & Actuator Objects
 // ========================
 OneWire oneWire(TEMP_PIN);
@@ -183,12 +163,6 @@ unsigned long sendDataPrevMillis = 0;
 unsigned long checkCommandsPrevMillis = 0;
 bool signupOK = false;
 
-// LED state variables
-bool lightStatus = false;
-String lightMode = "auto";
-uint32_t currentColor = strip.Color(74, 144, 226); // #4A90E2
-int brightness = 80;
-
 // Feeder state
 unsigned long lastFeedTime = 0;
 int feedInterval = 6; // hours
@@ -206,11 +180,6 @@ void setup() {
   // Initialize servo
   feederServo.attach(SERVO_PIN);
   feederServo.write(0); // Initial position
-  
-  // Initialize LED strip
-  strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
-  strip.setBrightness(brightness * 255 / 100);
   
   // Connect to WiFi
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -253,6 +222,9 @@ void loop() {
     checkCommandsPrevMillis = millis();
     checkCommands();
   }
+  
+  // Handle automatic lighting based on mode
+  handleLighting();
   
   // Handle automatic lighting based on mode
   handleLighting();
@@ -316,25 +288,6 @@ void checkCommands() {
     }
   }
   
-  // Get light settings
-  if (Firebase.RTDB.getString(&fbdo, "aquarium/devices/lights/status")) {
-    lightStatus = (fbdo.stringData() == "ON");
-  }
-  
-  if (Firebase.RTDB.getString(&fbdo, "aquarium/devices/lights/mode")) {
-    lightMode = fbdo.stringData();
-  }
-  
-  if (Firebase.RTDB.getString(&fbdo, "aquarium/devices/lights/color")) {
-    String colorHex = fbdo.stringData();
-    currentColor = hexToColor(colorHex);
-  }
-  
-  if (Firebase.RTDB.getInt(&fbdo, "aquarium/devices/lights/brightness")) {
-    brightness = fbdo.intData();
-    strip.setBrightness(brightness * 255 / 100);
-  }
-  
   // Get feeder settings
   if (Firebase.RTDB.getInt(&fbdo, "aquarium/devices/feeder/interval")) {
     feedInterval = fbdo.intData();
@@ -392,24 +345,6 @@ void handleLighting() {
       strip.show();
     }
   }
-}
-
-// ========================
-// Helper: Convert Hex to RGB Color
-// ========================
-uint32_t hexToColor(String hex) {
-  // Remove '#' if present
-  if (hex.charAt(0) == '#') {
-    hex = hex.substring(1);
-  }
-  
-  // Convert hex string to RGB values
-  long number = strtol(hex.c_str(), NULL, 16);
-  int r = (number >> 16) & 0xFF;
-  int g = (number >> 8) & 0xFF;
-  int b = number & 0xFF;
-  
-  return strip.Color(r, g, b);
 }
 
 // ========================

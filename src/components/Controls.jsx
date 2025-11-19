@@ -1,15 +1,11 @@
 import { useState, useEffect } from "react";
-import { Lightbulb, Coffee } from "lucide-react";
+import { Coffee } from "lucide-react";
 import { database } from "../firebase/config";
 import { ref, set, onValue } from "firebase/database";
 
 const Controls = () => {
   const [feedingMode, setFeedingMode] = useState("auto");
   const [feedInterval, setFeedInterval] = useState(6);
-  const [lightMode, setLightMode] = useState("manual");
-  const [lightStatus, setLightStatus] = useState("OFF");
-  const [lightColor, setLightColor] = useState("#4A90E2");
-  const [lightBrightness, setLightBrightness] = useState(80);
 
   // Load current settings from Firebase
   useEffect(() => {
@@ -22,13 +18,6 @@ const Controls = () => {
         if (data.feeder) {
           setFeedingMode(data.feeder.mode || "auto");
           setFeedInterval(data.feeder.interval || 6);
-        }
-
-        if (data.lights) {
-          setLightMode(data.lights.mode || "manual");
-          setLightStatus(data.lights.status || "OFF");
-          setLightColor(data.lights.color || "#4A90E2");
-          setLightBrightness(data.lights.brightness || 80);
         }
       }
     });
@@ -69,107 +58,71 @@ const Controls = () => {
     }
   };
 
-  const handleLightToggle = async () => {
-    const newStatus = lightStatus === "ON" ? "OFF" : "ON";
-    setLightStatus(newStatus);
-    try {
-      await set(ref(database, "aquarium/devices/lights/status"), newStatus);
-    } catch (error) {
-      console.error("Error toggling lights:", error);
-    }
-  };
-
-  const handleLightModeChange = async (mode) => {
-    setLightMode(mode);
-    try {
-      await set(ref(database, "aquarium/devices/lights/mode"), mode);
-    } catch (error) {
-      console.error("Error updating light mode:", error);
-    }
-  };
-
-  const handleLightColorChange = async (color) => {
-    setLightColor(color);
-    try {
-      await set(ref(database, "aquarium/devices/lights/color"), color);
-    } catch (error) {
-      console.error("Error updating light color:", error);
-    }
-  };
-
-  const handleBrightnessChange = async (brightness) => {
-    setLightBrightness(brightness);
-    try {
-      await set(
-        ref(database, "aquarium/devices/lights/brightness"),
-        parseInt(brightness)
-      );
-    } catch (error) {
-      console.error("Error updating brightness:", error);
-    }
-  };
-
   return (
-    <div className="p-4 pb-20 lg:pb-8 bg-transparent min-h-screen lg:p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-7 tracking-tight">
-          Device Controls
-        </h1>
+    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 p-4 lg:p-8 pb-20 lg:pb-8 min-h-screen">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8 flex items-center gap-3">
+          <div className="text-4xl">🎮</div>
+          <div>
+            <h1 className="font-bold text-gray-900 text-4xl lg:text-5xl tracking-tight bg-gradient-to-r from-coral-600 to-orange-600 bg-clip-text text-transparent">
+              Device Controls
+            </h1>
+            <p className="font-medium text-gray-500 text-sm mt-1">Manage your aquarium devices</p>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+        <div className="gap-6 lg:gap-8 grid grid-cols-1 lg:grid-cols-2">
           {/* Feeding Control */}
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-            <div className="flex items-center mb-5">
-              <div className="w-12 h-12 bg-coral-100 rounded-xl flex items-center justify-center mr-3 shadow-sm">
-                <Coffee className="text-coral-600" size={24} />
+          <div className="group bg-white shadow-md hover:shadow-xl p-7 lg:p-8 border border-gray-200 rounded-2xl hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center mb-6">
+              <div className="flex justify-center items-center bg-gradient-to-br from-coral-100 to-orange-100 shadow-sm mr-4 rounded-xl w-14 h-14">
+                <Coffee className="text-coral-600" size={28} />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">
+                <h2 className="font-bold text-gray-900 text-2xl">
                   Feeding System
                 </h2>
-                <p className="text-xs text-gray-600">
+                <p className="text-gray-500 text-sm font-medium">
                   Automated food dispenser
                 </p>
               </div>
             </div>
 
             {/* Mode Selection */}
-            <div className="mb-5">
-              <label className="text-sm font-bold text-gray-700 mb-3 block">
-                Mode
+            <div className="mb-6">
+              <label className="block mb-4 font-bold text-gray-900 text-sm uppercase tracking-wider">
+                Operating Mode
               </label>
               <div className="flex gap-3">
                 <button
                   onClick={() => handleFeedingModeChange("auto")}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
-                    feedingMode === "auto"
-                      ? "bg-coral-500 text-white shadow-lg hover:shadow-xl hover:bg-coral-600 scale-105"
+                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-300 uppercase tracking-wider ${feedingMode === "auto"
+                      ? "bg-gradient-to-r from-coral-500 to-orange-500 text-white shadow-lg hover:shadow-xl hover:from-coral-600 hover:to-orange-600 scale-105"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
-                  }`}
+                    }`}
                   aria-label="Set feeding to automatic mode"
                 >
-                  Automatic
+                  ⏰ Automatic
                 </button>
                 <button
                   onClick={() => handleFeedingModeChange("manual")}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
-                    feedingMode === "manual"
-                      ? "bg-coral-500 text-white shadow-lg hover:shadow-xl hover:bg-coral-600 scale-105"
+                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-300 uppercase tracking-wider ${feedingMode === "manual"
+                      ? "bg-gradient-to-r from-coral-500 to-orange-500 text-white shadow-lg hover:shadow-xl hover:from-coral-600 hover:to-orange-600 scale-105"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
-                  }`}
+                    }`}
                   aria-label="Set feeding to manual mode"
                 >
-                  Manual
+                  ✋ Manual
                 </button>
               </div>
             </div>
 
             {/* Auto Mode Settings */}
             {feedingMode === "auto" && (
-              <div className="mb-5 p-4 bg-gradient-to-br from-coral-50 to-orange-50 rounded-xl border border-coral-100 shadow-sm">
-                <label className="text-sm font-bold text-gray-700 mb-3 block">
+              <div className="bg-gradient-to-br from-coral-50 to-orange-50 shadow-sm mb-6 p-5 border border-coral-200 rounded-2xl">
+                <label className="block mb-4 font-bold text-gray-900 text-sm uppercase tracking-wider">
                   Feed Interval:{" "}
-                  <span className="text-coral-600">{feedInterval} hours</span>
+                  <span className="text-coral-600 font-bold">{feedInterval} hours</span>
                 </label>
                 <input
                   type="range"
@@ -177,12 +130,12 @@ const Controls = () => {
                   max="24"
                   value={feedInterval}
                   onChange={(e) => handleFeedIntervalChange(e.target.value)}
-                  className="w-full h-2.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-coral-500 focus-aqua"
+                  className="bg-gray-200 rounded-lg w-full h-2.5 accent-coral-500 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-coral-500 focus:ring-offset-2"
                   aria-label="Feeding interval slider"
                 />
-                <div className="flex justify-between text-xs text-gray-600 mt-2 font-medium">
-                  <span>1h</span>
-                  <span>24h</span>
+                <div className="flex justify-between mt-3 font-bold text-gray-600 text-xs">
+                  <span>1 hour</span>
+                  <span>24 hours</span>
                 </div>
               </div>
             )}
@@ -190,129 +143,51 @@ const Controls = () => {
             {/* Feed Now Button */}
             <button
               onClick={handleFeedNow}
-              className="w-full bg-gradient-to-r from-coral-500 via-coral-600 to-orange-500 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 hover:scale-105 focus-aqua"
+              className="bg-gradient-to-r from-coral-500 via-coral-600 to-orange-500 shadow-lg hover:shadow-2xl py-4 px-6 rounded-xl w-full font-bold text-white hover:scale-105 active:scale-95 transition-all duration-300 text-lg uppercase tracking-wider"
               aria-label="Feed fish now"
             >
-              🐟 Feed Now
+              🐟 Feed Now!
             </button>
           </div>
 
-          {/* Lighting Control */}
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-            <div className="flex items-center mb-5">
-              <div className="w-12 h-12 bg-gradient-to-br from-coral-100 to-yellow-100 rounded-xl flex items-center justify-center mr-3 shadow-sm">
-                <Lightbulb className="text-coral-600" size={24} />
+          {/* Additional Controls Section */}
+          <div className="group bg-white shadow-md hover:shadow-xl p-7 lg:p-8 border border-gray-200 rounded-2xl hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center mb-6">
+              <div className="flex justify-center items-center bg-gradient-to-br from-blue-100 to-cyan-100 shadow-sm mr-4 rounded-xl w-14 h-14">
+                <span className="text-2xl">⚙️</span>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">
-                  RGB Lighting
+                <h2 className="font-bold text-gray-900 text-2xl">
+                  Quick Settings
                 </h2>
-                <p className="text-xs text-gray-600">LED strip control</p>
+                <p className="text-gray-500 text-sm font-medium">
+                  Adjust device parameters
+                </p>
               </div>
             </div>
 
-            {/* Mode Selection */}
-            <div className="mb-5">
-              <label className="text-sm font-bold text-gray-700 mb-3 block">
-                Mode
-              </label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleLightModeChange("auto")}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
-                    lightMode === "auto"
-                      ? "bg-gradient-to-r from-coral-500 to-coral-600 text-white shadow-lg hover:shadow-xl scale-105"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
-                  }`}
-                  aria-label="Set lighting to auto day/night mode"
-                >
-                  Auto Day/Night
-                </button>
-                <button
-                  onClick={() => handleLightModeChange("manual")}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 focus-aqua ${
-                    lightMode === "manual"
-                      ? "bg-gradient-to-r from-coral-500 to-coral-600 text-white shadow-lg hover:shadow-xl scale-105"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
-                  }`}
-                  aria-label="Set lighting to manual mode"
-                >
-                  Manual
-                </button>
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="font-semibold text-gray-900">Feeding System</p>
+                  <span className="text-sm font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">{feedingMode === "auto" ? "Automatic" : "Manual"}</span>
+                </div>
+                <p className="text-gray-600 text-xs">Current mode: {feedingMode}</p>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="font-semibold text-gray-900">System Health</p>
+                  <span className="text-sm font-bold text-green-600 bg-green-100 px-3 py-1 rounded-full">Good</span>
+                </div>
+                <p className="text-gray-600 text-xs">All systems operational</p>
               </div>
             </div>
-
-            {/* Manual Mode Settings */}
-            {lightMode === "manual" && (
-              <>
-                {/* Color Picker */}
-                <div className="mb-5">
-                  <label className="text-sm font-bold text-gray-700 mb-3 block">
-                    Color
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="color"
-                      value={lightColor}
-                      onChange={(e) => handleLightColorChange(e.target.value)}
-                      className="w-20 h-20 rounded-xl cursor-pointer border-2 border-gray-300 shadow-md hover:shadow-lg transition-all focus-aqua"
-                      aria-label="Select light color"
-                    />
-                    <div className="flex-1">
-                      <div className="grid grid-cols-6 gap-2">
-                        {[
-                          "#FF0000",
-                          "#00FF00",
-                          "#0000FF",
-                          "#FFFF00",
-                          "#FF00FF",
-                          "#00FFFF",
-                        ].map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => handleLightColorChange(color)}
-                            style={{ backgroundColor: color }}
-                            className="w-10 h-10 rounded-xl border-2 border-gray-300 hover:scale-110 hover:shadow-lg transition-all focus-aqua"
-                            aria-label={`Set color to ${color}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Brightness Slider */}
-                <div className="mb-5 p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border border-yellow-100 shadow-sm">
-                  <label className="text-sm font-bold text-gray-700 mb-3 block">
-                    Brightness:{" "}
-                    <span className="text-coral-600">{lightBrightness}%</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={lightBrightness}
-                    onChange={(e) => handleBrightnessChange(e.target.value)}
-                    className="w-full h-2.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-coral-500 focus-aqua"
-                    aria-label="Adjust brightness"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Light Toggle */}
-            <button
-              onClick={handleLightToggle}
-              className="w-full bg-gradient-to-r from-coral-400 via-coral-500 to-orange-500 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 hover:scale-105 focus-aqua"
-              aria-label="Toggle lights on or off"
-            >
-              💡 Toggle Lights
-            </button>
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default Controls;
